@@ -2,6 +2,7 @@ import { logger } from '../services/logger';
 import { FETCH_MEDIA_QUEUE_URL, JobType } from '../services/queue';
 import { handleSyncMedia } from './handlers/fetchMedia';
 import { loadSecrets } from '../config/env';
+import { config } from '../config/env';
 import { pollQueue } from './poll';
 
 async function processMessage(message: any) {
@@ -20,7 +21,7 @@ async function startWorker() {
     logger.info('[Sync Worker] Initializing...');
     await loadSecrets();
     logger.info(`[Sync Worker] Successfully connected. Now polling queue: ${FETCH_MEDIA_QUEUE_URL}`);
-    pollQueue('Sync Worker', FETCH_MEDIA_QUEUE_URL, processMessage);
+    pollQueue('Sync Worker', FETCH_MEDIA_QUEUE_URL, config.worker.fetchMedia.sqsPollBatchSize, processMessage);
   } catch (error) {
     logger.error(error, '[Sync Worker] Fatal Error starting worker:');
     process.exit(1);

@@ -1,30 +1,43 @@
-import { logger } from '../services/logger';
 import * as dotenv from 'dotenv';
 import { fetchSecret } from '../services/secrets';
 dotenv.config();
 
 export const config = {
-  port: parseInt(process.env.PORT || '3000', 10),
+  nodeEnv: process.env.NODE_ENV || 'development',
+  logLevel: process.env.LOG_LEVEL || 'info',
+  port: parseInt(process.env.PORT as string, 10),
   db: {
     url: process.env.DATABASE_URL as string,
   },
   meta: {
     accessToken: process.env.META_ACCESS_TOKEN as string,
     userId: process.env.META_USER_ID as string,
+    mediaFetchLimit: parseInt(process.env.META_MEDIA_FETCH_LIMIT as string, 10),
   },
   aws: {
-    endpoint: process.env.AWS_ENDPOINT || 'http://localhost:4566',
-    publicEndpoint: process.env.AWS_PUBLIC_ENDPOINT || 'http://localhost:4566',
-    region: process.env.AWS_REGION || 'us-east-1',
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'test',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'test',
+    endpoint: process.env.AWS_ENDPOINT as string,
+    publicEndpoint: process.env.AWS_PUBLIC_ENDPOINT as string,
+    region: process.env.AWS_REGION as string,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
   },
   sqs: {
-    fetchMediaQueueUrl: process.env.SQS_FETCH_MEDIA_QUEUE_URL || 'http://localhost:4566/000000000000/fetch-media-queue',
-    downloadMediaQueueUrl: process.env.SQS_DOWNLOAD_MEDIA_QUEUE_URL || 'http://localhost:4566/000000000000/download-media-queue',
+    fetchMediaQueueUrl: process.env.SQS_FETCH_MEDIA_QUEUE_URL as string,
+    downloadMediaQueueUrl: process.env.SQS_DOWNLOAD_MEDIA_QUEUE_URL as string,
   },
   s3: {
-    bucketName: process.env.S3_BUCKET_NAME || 'ig-media',
+    bucketName: process.env.S3_BUCKET_NAME as string,
+  },
+  worker: {
+    outbox: {
+      batchSize: parseInt(process.env.WORKER_OUTBOX_BATCH_SIZE as string, 10),
+    },
+    fetchMedia: {
+      sqsPollBatchSize: parseInt(process.env.WORKER_FETCH_MEDIA_SQS_POLL_BATCH_SIZE as string, 10),
+    },
+    downloadMedia: {
+      sqsPollBatchSize: parseInt(process.env.WORKER_DOWNLOAD_MEDIA_SQS_POLL_BATCH_SIZE as string, 10),
+    }
   }
 };
 
@@ -34,13 +47,11 @@ export const config = {
 export async function loadSecrets() {
   const secretId = process.env.AWS_SECRET_ID;
   if (secretId) {
-    logger.info(`[Config] Loading secrets from AWS Secrets Manager (${secretId})...`);
+    console.info(`[Config] Loading secrets from AWS Secrets Manager (${secretId})...`);
     const secrets = await fetchSecret(secretId);
     
     if (secrets) {
       config.db.url = secrets.DATABASE_URL || config.db.url;
-      config.meta.accessToken = secrets.META_ACCESS_TOKEN || config.meta.accessToken;
-      config.meta.userId = secrets.META_USER_ID || config.meta.userId;
     }
   }
 

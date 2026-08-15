@@ -1,9 +1,10 @@
 import pino from 'pino';
+import { config } from '../config/env';
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = config.nodeEnv === 'production';
 
 export const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
+  level: config.logLevel,
   // In development, use pino-pretty for readable logs.
   // In production, log raw JSON for DataDog/CloudWatch.
   ...(isProduction ? {} : {

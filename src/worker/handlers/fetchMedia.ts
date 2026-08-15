@@ -3,6 +3,7 @@ import db from '../../db';
 import { metaService } from '../../services/meta';
 import { queueService, SyncMediaPayload, JobType } from '../../services/queue';
 import { FeedType } from '../../types';
+import { config } from '../../config/env';
 
 async function processAndInsertMedia(mediaList: any[], hashtagId: string, syncType: JobType) {
   const trx = await db.transaction();
@@ -86,7 +87,7 @@ async function processAndInsertMedia(mediaList: any[], hashtagId: string, syncTy
 export async function handleSyncMedia(payload: SyncMediaPayload) {
   const { hashtagId, igHashtagId, syncType, afterCursor } = payload;
   const totalFetched = payload.totalFetched || 0;
-  const FETCH_LIMIT = 50; //setting to a lower limit for testing
+  const FETCH_LIMIT = config.meta.mediaFetchLimit;
 
   const feedType = syncType === JobType.SYNC_TOP_HASHTAG_MEDIA ? FeedType.TOP : FeedType.RECENT;
 

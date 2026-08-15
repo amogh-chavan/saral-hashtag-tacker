@@ -2,6 +2,7 @@ import { logger } from '../services/logger';
 import { DOWNLOAD_MEDIA_QUEUE_URL, JobType } from '../services/queue';
 import { handleDownloadAsset } from './handlers/downloadMedia';
 import { loadSecrets } from '../config/env';
+import { config } from '../config/env';
 import { pollQueue } from './poll';
 
 async function processMessage(message: any) {
@@ -20,7 +21,7 @@ async function startWorker() {
     logger.info('[Download Worker] Initializing...');
     await loadSecrets();
     logger.info(`[Download Worker] Successfully connected. Now polling queue: ${DOWNLOAD_MEDIA_QUEUE_URL}`);
-    pollQueue('Download Worker', DOWNLOAD_MEDIA_QUEUE_URL, processMessage);
+    pollQueue('Download Worker', DOWNLOAD_MEDIA_QUEUE_URL, config.worker.downloadMedia.sqsPollBatchSize, processMessage);
   } catch (error) {
     logger.error(error, '[Download Worker] Fatal Error starting worker:');
     process.exit(1);

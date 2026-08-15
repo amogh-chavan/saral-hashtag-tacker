@@ -2,36 +2,14 @@
 
 ## Setup
 
-1. **Install dependencies:**
+1. **Environment Config:**
+   Copy `.env.example` to `.env` and fill in your Meta API credentials.
+   
+2. **Start the Stack (Dockerized):**
+   The entire application (Postgres, LocalStack S3/SQS, API Server, and 3 background workers) is containerized for simple one-click execution.
    ```bash
-   npm install
-   ```
-
-2. **Database Setup:**
-   Ensure you have PostgreSQL running. Create the database:
-   ```bash
-   createdb saral_hashtag_tracker
-   ```
-   Run migrations:
-   ```bash
-   npx knex migrate:latest
-   ```
-
-3. **LocalStack Setup (Optional but recommended):**
-   If you want to test the queue and storage locally, you can start LocalStack using Docker:
-   ```bash
-   docker run --rm -it -p 4566:4566 -p 4510-4559:4510-4559 localstack/localstack
-   ```
-   Create the queue and bucket in LocalStack:
-   ```bash
-   awslocal sqs create-queue --queue-name fetch-media-queue
-   awslocal sqs create-queue --queue-name download-media-queue
-   awslocal s3 mb s3://ig-media
-   ```
-
-4. **Start the application:**
-   ```bash
-   npm run dev
+   chmod +x start.sh
+   ./start.sh
    ```
 
 ## Vars

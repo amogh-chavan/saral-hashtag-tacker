@@ -7,12 +7,13 @@ const POLL_INTERVAL_MS = 2000;
 export async function pollQueue(
   workerName: string,
   queueUrl: string,
+  batchSize: number,
   processMessage: (message: any) => Promise<void>
 ) {
   try {
     const command = new ReceiveMessageCommand({
       QueueUrl: queueUrl,
-      MaxNumberOfMessages: 5,
+      MaxNumberOfMessages: batchSize,
       WaitTimeSeconds: 10,
     });
 
@@ -38,6 +39,6 @@ export async function pollQueue(
   } catch (error: any) {
     logger.error({ err: error.message }, `[${workerName}] Error polling SQS:`);
   } finally {
-    setTimeout(() => pollQueue(workerName, queueUrl, processMessage), POLL_INTERVAL_MS);
+    setTimeout(() => pollQueue(workerName, queueUrl, batchSize, processMessage), POLL_INTERVAL_MS);
   }
 }

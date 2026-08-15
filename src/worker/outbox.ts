@@ -1,17 +1,17 @@
 import { logger } from '../services/logger';
 import db from '../db';
 import { queueService, JobType } from '../services/queue';
-import { loadSecrets } from '../config/env';
+import { loadSecrets, config } from '../config/env';
 
 const POLL_INTERVAL_MS = 5000;
 
 async function pollOutbox() {
   try {
     // 1. Fetch pending events
-    const pendingEvents = await db('outbox_events')
+      const pendingEvents = await db('outbox_events')
       .where('status', 'PENDING')
       .orderBy('created_at', 'asc')
-      .limit(50);
+      .limit(config.worker.outbox.batchSize);
 
     for (const event of pendingEvents) {
       logger.info(`[Outbox Worker] Processing event ID: ${event.id}`);
@@ -53,7 +53,7 @@ async function pollOutbox() {
         'id',
         db('outbox_events')
           .select('id')
-          .where('status', 'PROCESSED')
+          .whereIn('status', ['PROCESSED', 'FAILED'])
           .andWhere('processed_at', '<', oneDayAgo)
           .limit(500)
       )
