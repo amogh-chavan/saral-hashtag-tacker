@@ -1,6 +1,7 @@
 import { logger } from './logger';
 import axios from 'axios';
 import { config } from '../config/env';
+import { FeedType } from '../types';
 
 export interface MetaMedia {
   id: string;
@@ -63,7 +64,7 @@ export class MetaService {
    */
   async getHashtagMedia(
     hashtagId: string, 
-    type: 'top_media' | 'recent_media', 
+    type: FeedType, 
     afterCursor?: string
   ): Promise<MetaResponse> {
     const url = `${this.baseUrl}/${hashtagId}/${type}`;
