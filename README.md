@@ -51,3 +51,21 @@ Instead of a single monolithic process, the application is broken down into 5 in
 ## Tuning & Configuration
 
 The application is highly decoupled. You can control the throughput of the background workers without touching code or rebuilding containers. Just edit the `# Worker Configurations` section in your `.env` file to scale the SQS polling batch sizes and API fetch limits up or down!
+
+## API Usage
+
+### Get Media for a Hashtag
+
+Fetch paginated, downloaded media for a tracked hashtag. Only returns posts that have a fully downloaded S3 asset.
+
+```bash
+curl --location --request GET 'http://localhost:3000/api/hashtags?name=matcha&page=1&limit=100'
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `name` | string | ✅ Yes | The hashtag name to query (without `#`) |
+| `page` | number | No | Page number (default: `1`) |
+| `limit` | number | No | Items per page, max `100` (default: `20`) |
