@@ -1,4 +1,5 @@
 import { hashtagModel } from './model';
+import { config } from '../../config/env';
 
 export class HashtagService {
   async getPaginatedMedia(name: string, pageNum: number, limitNum: number) {
@@ -13,21 +14,32 @@ export class HashtagService {
     const offset = (pageNum - 1) * limitNum;
     
     // 3. Fetch data from models
-    const [media, total] = await Promise.all([
-      hashtagModel.getMediaByHashtagId(hashtag.id, limitNum, offset),
-      hashtagModel.getMediaCountByHashtagId(hashtag.id)
-    ]);
+    let media;
+    let total: number | undefined;
+
+    if (pageNum === 1) {
+      [media, total] = await Promise.all([
+        hashtagModel.getMediaByHashtagId(hashtag.id, limitNum, offset),
+        hashtagModel.getMediaCountByHashtagId(hashtag.id)
+      ]);
+    } else {
+      media = await hashtagModel.getMediaByHashtagId(hashtag.id, limitNum, offset);
+    }
     
-    const totalPages = Math.ceil(total / limitNum);
+    const totalPages = total !== undefined ? Math.ceil(total / limitNum) : undefined;
+
+    const formattedMedia = media.map(m => ({
+      ...m,
+      asset_key: `${config.aws.publicEndpoint}/${config.s3.bucketName}/${m.asset_key}`
+    }));
 
     // 4. Return formatted response
     return {
-      data: media,
+      data: formattedMedia,
       meta: {
-        total,
+        ...(total !== undefined && { total, totalPages }),
         page: pageNum,
         limit: limitNum,
-        totalPages,
       }
     };
   }

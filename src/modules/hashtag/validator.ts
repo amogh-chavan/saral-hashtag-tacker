@@ -24,9 +24,9 @@ export const hashtagValidator = {
       });
     }
 
-    // Assign the validated and type-casted values back to req.query
-    // so the controller doesn't need to parse strings to numbers!
-    req.query = value;
+    // Assign the validated and type-casted values to res.locals
+    // because in Express 5 req.query is read-only!
+    res.locals.validatedQuery = value;
     next();
   }
 };

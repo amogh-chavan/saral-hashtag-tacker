@@ -6,7 +6,7 @@ export class HashtagController {
   getHashtagMedia = async (req: Request, res: Response) => {
     try {
       // The Joi validator has already validated and casted these to the correct types!
-      const { name, page, limit } = req.query as unknown as { name: string; page: number; limit: number };
+      const { name, page, limit } = res.locals.validatedQuery;
       
       // 1. Delegate to Service
       const result = await hashtagService.getPaginatedMedia(name, page, limit);

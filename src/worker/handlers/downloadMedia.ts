@@ -13,8 +13,16 @@ export async function handleDownloadAsset(payload: DownloadAssetPayload) {
     // 1. Fetch the file from Meta as a stream
     const response = await axios.get(metaMediaUrl, { responseType: 'stream' });
 
-    // 2. Generate S3 Key
-    const key = `media/${internalMediaId}${fileExtension}`;
+    // 2. Generate S3 Key based on media type
+    let subfolder = 'misc';
+    const ext = fileExtension.toLowerCase();
+    if (ext === '.mp4') {
+      subfolder = 'videos';
+    } else if (['.jpg', '.jpeg', '.png', '.webp'].includes(ext)) {
+      subfolder = 'images';
+    }
+    
+    const key = `${subfolder}/${internalMediaId}${fileExtension}`;
 
     // 3. Upload to S3 directly via stream (No memory bloat)
     const contentType = (response.headers['content-type'] as string) || 'application/octet-stream';

@@ -8,12 +8,11 @@ export class HashtagModel {
   async getMediaByHashtagId(hashtagId: string, limit: number, offset: number) {
     return db('media')
       .join('media_hashtags', 'media.id', 'media_hashtags.media_id')
-      .join('media_metrics', 'media.id', 'media_metrics.media_id')
+      .leftJoin('media_metrics', 'media.id', 'media_metrics.media_id')
       .where('media_hashtags.hashtag_id', hashtagId)
       .whereNotNull('media.asset_key')
       .select(
         'media.id',
-        'media.ig_media_id',
         'media.media_type',
         'media.caption',
         'media.permalink',
