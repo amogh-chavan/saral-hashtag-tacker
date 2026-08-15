@@ -10,6 +10,13 @@ export async function handleDownloadAsset(payload: DownloadAssetPayload) {
   logger.info(`[DOWNLOAD] Starting download for media ID: ${internalMediaId}`);
 
   try {
+    // 0. Idempotency Check: Don't download if we already have it
+    const existingMedia = await db('media').where({ id: internalMediaId }).first();
+    if (existingMedia && existingMedia.asset_key) {
+      logger.info(`[DOWNLOAD] Media ${internalMediaId} already has asset_key. Skipping redundant download.`);
+      return;
+    }
+
     // 1. Fetch the file from Meta as a stream
     const response = await axios.get(metaMediaUrl, { responseType: 'stream' });
 

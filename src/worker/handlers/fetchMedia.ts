@@ -13,7 +13,7 @@ async function processAndInsertMedia(mediaList: any[], hashtagId: string, syncTy
         continue;
       }
 
-      // 2. UPSERT Media (Cold Data)
+      // 1. UPSERT Media (Cold Data)
       const mediaInsertResult = await trx('media')
         .insert({
           ig_media_id: item.id,
@@ -24,11 +24,11 @@ async function processAndInsertMedia(mediaList: any[], hashtagId: string, syncTy
         })
         .onConflict('ig_media_id')
         .merge()
-        .returning('id');
+        .returning(['id', 'asset_key']);
 
-      const internalMediaId = mediaInsertResult[0].id;
+      const { id: internalMediaId, asset_key: assetKey } = mediaInsertResult[0];
 
-      // 3. UPSERT Media Metrics (Hot Data)
+      // 2. UPSERT Media Metrics (Hot Data)
       await trx('media_metrics')
         .insert({
           media_id: internalMediaId,
@@ -39,33 +39,29 @@ async function processAndInsertMedia(mediaList: any[], hashtagId: string, syncTy
         .onConflict('media_id')
         .merge();
 
-      // 4. Create Relation & Track Source (TOP/RECENT)
-      const existingRelation = await trx('media_hashtags')
-        .where({ media_id: internalMediaId, hashtag_id: hashtagId })
-        .first();
-
+      // 3. Create Relation & Track Source (TOP/RECENT)
       const sourceToAppend = syncType === JobType.SYNC_TOP_HASHTAG_MEDIA ? 'TOP' : 'RECENT';
 
-      if (existingRelation) {
-        // Only append if it isn't already there
-        if (!existingRelation.sources.includes(sourceToAppend)) {
-          await trx('media_hashtags')
-            .where({ media_id: internalMediaId, hashtag_id: hashtagId })
-            .update({
-              sources: trx.raw('array_append(sources, ?)', [sourceToAppend])
-            });
-        }
-      } else {
-        await trx('media_hashtags').insert({
+      await trx('media_hashtags')
+        .insert({
           media_id: internalMediaId,
           hashtag_id: hashtagId,
           sources: [sourceToAppend]
+        })
+        .onConflict(['media_id', 'hashtag_id'])
+        .merge({
+          // Atomically append the source only if it doesn't already exist in the array
+          sources: trx.raw(`
+            CASE 
+              WHEN array_position(media_hashtags.sources, ?) IS NULL 
+              THEN array_append(media_hashtags.sources, ?) 
+              ELSE media_hashtags.sources 
+            END
+          `, [sourceToAppend, sourceToAppend])
         });
-      }
 
-      // 5. Enqueue Asset Download (if not already downloaded)
-      const currentMedia = await trx('media').where({ id: internalMediaId }).first();
-      if (!currentMedia.asset_key && item.media_url) {
+      // 4. Enqueue Asset Download (if not already downloaded)
+      if (!assetKey && item.media_url) {
         const ext = item.media_type === 'VIDEO' ? '.mp4' : '.jpg';
         await trx('outbox_events').insert({
           event_type: JobType.DOWNLOAD_ASSET,
@@ -106,7 +102,7 @@ export async function handleSyncMedia(payload: SyncMediaPayload) {
 
   await processAndInsertMedia(mediaList, hashtagId, syncType);
 
-  // 6. Handle Pagination
+  // 5. Handle Pagination
   const nextCursor = response.paging?.cursors?.after;
   const newlyFetchedTotal = totalFetched + mediaList.length;
 

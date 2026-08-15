@@ -32,6 +32,14 @@ async function pollOutbox() {
           });
       } catch (err: any) {
         logger.error({ err: err.message }, `[Outbox Worker] Failed to process event ${event.id}:`);
+        
+        // Mark as FAILED so it stops blocking the queue
+        await db('outbox_events')
+          .where('id', event.id)
+          .update({
+            status: 'FAILED',
+            processed_at: new Date()
+          });
       }
     }
 
