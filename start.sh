@@ -33,4 +33,4 @@ docker exec saral-hashtag-tracker-localstack-1 awslocal s3 mb s3://ig-media
 echo "🏗️  Building and starting application services..."
 docker compose up --build
 
-echo "✅ Setup complete! Application is running :)"
+echo "✅ Shutdown completed :)"
