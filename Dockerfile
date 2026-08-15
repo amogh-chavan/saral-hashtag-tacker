@@ -9,5 +9,8 @@ RUN npm install
 # Copy application source code
 COPY . .
 
+# Build the application
+RUN npm run build
+
 # Default command (will be overridden in docker-compose.yml)
-CMD ["npm", "run", "dev:server"]
+CMD ["npm", "run", "start:server"]

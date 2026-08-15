@@ -24,8 +24,9 @@
    ```
    Create the queue and bucket in LocalStack:
    ```bash
-   awslocal sqs create-queue --queue-name media-sync-queue
-   awslocal s3 mb s3://hashtag-media-assets
+   awslocal sqs create-queue --queue-name fetch-media-queue
+   awslocal sqs create-queue --queue-name download-media-queue
+   awslocal s3 mb s3://ig-media
    ```
 
 4. **Start the application:**
@@ -38,7 +39,7 @@
 See the `.env` file for required environment variables. It includes setup for:
 - Database connection (`DATABASE_URL`)
 - Meta API tokens (`META_ACCESS_TOKEN`, `META_USER_ID`)
-- AWS LocalStack configuration (`AWS_ENDPOINT`, `SQS_QUEUE_URL`, `S3_BUCKET_NAME`)
+- AWS LocalStack configuration (`AWS_ENDPOINT`, `SQS_FETCH_MEDIA_QUEUE_URL`, `SQS_DOWNLOAD_MEDIA_QUEUE_URL`, `S3_BUCKET_NAME`)
 
 ## Tradeoffs
 

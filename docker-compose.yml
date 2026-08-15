@@ -1,17 +1,13 @@
 version: '3.8'
 
 x-app-env: &app-env
+  # We still need to override these specific URLs because inside Docker, 
+  # they need to point to the container names ('postgres' and 'localstack') 
+  # instead of 'localhost' as defined in your .env file.
   DATABASE_URL: postgres://postgres:postgres@postgres:5432/saral_hashtag_tracker
   AWS_ENDPOINT: http://localstack:4566
-  AWS_REGION: us-east-1
-  AWS_ACCESS_KEY_ID: test
-  AWS_SECRET_ACCESS_KEY: test
-  SQS_FETCH_MEDIA_QUEUE_URL: http://localstack:4566/000000000000/media-sync-queue
-  SQS_DOWNLOAD_MEDIA_QUEUE_URL: http://localstack:4566/000000000000/asset-download-queue
-  S3_BUCKET_NAME: hashtag-media-assets
-  # Add dummy values so the startup validation passes (or add real ones to a local .env file)
-  META_ACCESS_TOKEN: ${META_ACCESS_TOKEN:-mock_token}
-  META_USER_ID: ${META_USER_ID:-mock_user_id}
+  SQS_FETCH_MEDIA_QUEUE_URL: http://localstack:4566/000000000000/fetch-media-queue
+  SQS_DOWNLOAD_MEDIA_QUEUE_URL: http://localstack:4566/000000000000/download-media-queue
 
 services:
   postgres:
@@ -21,84 +17,78 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: saral_hashtag_tracker
     ports:
-      - "5432:5432"
+      - "15432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
   localstack:
-    image: localstack/localstack
+    image: localstack/localstack:4.4.0
     ports:
       - "127.0.0.1:4566:4566"
     environment:
-      - SERVICES=sqs,s3,secretsmanager
       - DEBUG=1
       - DOCKER_HOST=unix:///var/run/docker.sock
     volumes:
-      - "${LOCALSTACK_VOLUME_DIR:-./.localstack}:/var/lib/localstack"
+      - "${LOCALSTACK_VOLUME_DIR:-./.localstack-data}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
 
   server:
     build: .
-    command: npm run dev:server
+    command: npm run start:server
     ports:
       - "3000:3000"
+    env_file: .env
     environment:
       <<: *app-env
       PORT: 3000
     depends_on:
       - postgres
       - localstack
-    volumes:
-      - .:/app
-      - /app/node_modules
+
 
   fetch_media_worker:
     build: .
-    command: npm run dev:worker:fetchMedia
+    command: npm run start:worker:fetchMedia
+    env_file: .env
     environment:
       <<: *app-env
     depends_on:
       - postgres
       - localstack
-    volumes:
-      - .:/app
-      - /app/node_modules
+
 
   download_media_worker:
     build: .
-    command: npm run dev:worker:downloadMedia
+    command: npm run start:worker:downloadMedia
+    env_file: .env
     environment:
       <<: *app-env
     depends_on:
       - postgres
       - localstack
-    volumes:
-      - .:/app
-      - /app/node_modules
+
 
   outbox_worker:
     build: .
-    command: npm run dev:worker:outbox
+    command: npm run start:worker:outbox
+    env_file: .env
     environment:
       <<: *app-env
     depends_on:
       - postgres
       - localstack
-    volumes:
-      - .:/app
-      - /app/node_modules
+
 
   cron:
     build: .
-    command: npm run dev:cron
+    command: npm run start:cron
+    env_file: .env
     environment:
       <<: *app-env
     depends_on:
       - postgres
       - localstack
-    volumes:
-      - .:/app
-      - /app/node_modules
+
 
 volumes:
   pgdata:

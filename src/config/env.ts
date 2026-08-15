@@ -19,11 +19,11 @@ export const config = {
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'test',
   },
   sqs: {
-    fetchMediaQueueUrl: process.env.SQS_FETCH_MEDIA_QUEUE_URL || 'http://localhost:4566/000000000000/media-sync-queue',
-    downloadMediaQueueUrl: process.env.SQS_DOWNLOAD_MEDIA_QUEUE_URL || 'http://localhost:4566/000000000000/asset-download-queue',
+    fetchMediaQueueUrl: process.env.SQS_FETCH_MEDIA_QUEUE_URL || 'http://localhost:4566/000000000000/fetch-media-queue',
+    downloadMediaQueueUrl: process.env.SQS_DOWNLOAD_MEDIA_QUEUE_URL || 'http://localhost:4566/000000000000/download-media-queue',
   },
   s3: {
-    bucketName: process.env.S3_BUCKET_NAME || 'hashtag-media-assets',
+    bucketName: process.env.S3_BUCKET_NAME || 'ig-media',
   }
 };
 

@@ -90,7 +90,7 @@ async function processAndInsertMedia(mediaList: any[], hashtagId: string, syncTy
 export async function handleSyncMedia(payload: SyncMediaPayload) {
   const { hashtagId, igHashtagId, syncType, afterCursor } = payload;
   const totalFetched = payload.totalFetched || 0;
-  const FETCH_LIMIT = 500;
+  const FETCH_LIMIT = 50; //setting to a lower limit for testing
 
   const feedType = syncType === JobType.SYNC_TOP_HASHTAG_MEDIA ? FeedType.TOP : FeedType.RECENT;
 
