@@ -8,6 +8,8 @@ export async function up(knex: Knex): Promise<void> {
     table.string('status').notNullable().defaultTo('PENDING'); // PENDING or PROCESSED
     table.timestamp('created_at').defaultTo(knex.fn.now());
     table.timestamp('processed_at').nullable();
+    
+    table.index('status');
   });
 }
 

@@ -21,7 +21,11 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamp("posted_at").notNullable();
     table.timestamps(true, true);
 
-    table.index("posted_at");
+    // Use a partial index for posted_at to only track media that has been downloaded
+    // This perfectly optimizes the `WHERE asset_key IS NOT NULL ORDER BY posted_at DESC` query
+    table.index(['posted_at'], 'idx_media_posted_at_has_asset', { 
+      predicate: knex.whereNotNull('asset_key')
+    });
   });
 
   // 3. Create media_metrics table (Hot Data - 1 to 1 relation with media)
@@ -39,6 +43,7 @@ export async function up(knex: Knex): Promise<void> {
     table.specificType("sources", "text[]").notNullable().defaultTo(knex.raw("ARRAY[]::text[]"));
     
     table.primary(["media_id", "hashtag_id"]);
+    table.index("hashtag_id");
   });
 }
 
