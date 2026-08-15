@@ -1,3 +1,4 @@
+import { logger } from './logger';
 import axios from 'axios';
 import { config } from '../config/env';
 
@@ -52,7 +53,7 @@ export class MetaService {
       }
       throw new Error(`Hashtag '${hashtagName}' not found or inaccessible.`);
     } catch (error: any) {
-      console.error(`Meta API Error fetching ID for hashtag ${hashtagName}:`, error?.response?.data || error.message);
+      logger.error({ err: error?.response?.data || error.message }, `Meta API Error fetching ID for hashtag ${hashtagName}:`);
       throw error;
     }
   }
@@ -82,7 +83,7 @@ export class MetaService {
       const response = await axios.get<MetaResponse>(url, { params });
       return response.data;
     } catch (error: any) {
-      console.error(`Meta API Error fetching ${type} for hashtag ${hashtagId}:`, error?.response?.data || error.message);
+      logger.error({ err: error?.response?.data || error.message }, `Meta API Error fetching ${type} for hashtag ${hashtagId}:`);
       throw error;
     }
   }

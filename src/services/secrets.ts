@@ -1,3 +1,4 @@
+import { logger } from './logger';
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 import { config } from '../config/env';
 
@@ -24,7 +25,7 @@ export async function fetchSecret(secretId: string): Promise<Record<string, stri
     }
     return null;
   } catch (error) {
-    console.error(`[SecretsManager] Error fetching secret ${secretId}:`, error);
+    logger.error(error, `[SecretsManager] Error fetching secret ${secretId}:`);
     return null;
   }
 }

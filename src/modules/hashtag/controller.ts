@@ -1,3 +1,4 @@
+import { logger } from '../../services/logger';
 import { Request, Response } from 'express';
 import { hashtagService } from './service';
 
@@ -18,7 +19,7 @@ export class HashtagController {
       // 4. Send success response
       return res.json(result);
     } catch (error) {
-      console.error('[HashtagController] Error fetching hashtag media:', error);
+      logger.error(error, '[HashtagController] Error fetching hashtag media:');
       res.status(500).json({ error: "Internal Server Error" });
     }
   }

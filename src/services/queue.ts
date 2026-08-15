@@ -1,3 +1,4 @@
+import { logger } from './logger';
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 import { config } from '../config/env';
 
@@ -56,7 +57,7 @@ export class QueueService {
     try {
       await sqsClient.send(command);
     } catch (error) {
-      console.error(`Failed to enqueue job ${body.type}:`, error);
+      logger.error(error, `Failed to enqueue job ${body.type}:`);
       throw error;
     }
   }

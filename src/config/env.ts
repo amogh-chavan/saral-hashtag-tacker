@@ -1,3 +1,4 @@
+import { logger } from '../services/logger';
 import * as dotenv from 'dotenv';
 import { fetchSecret } from '../services/secrets';
 dotenv.config();
@@ -31,7 +32,7 @@ export const config = {
 export async function loadSecrets() {
   const secretId = process.env.AWS_SECRET_ID;
   if (secretId) {
-    console.log(`[Config] Loading secrets from AWS Secrets Manager (${secretId})...`);
+    logger.info(`[Config] Loading secrets from AWS Secrets Manager (${secretId})...`);
     const secrets = await fetchSecret(secretId);
     
     if (secrets) {

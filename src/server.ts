@@ -1,3 +1,4 @@
+import { logger } from './services/logger';
 import express from 'express';
 import cors from 'cors';
 import { loadSecrets, config } from './config/env';
@@ -16,17 +17,17 @@ app.get('/health', (req, res) => res.send('OK'));
 
 async function startServer() {
   try {
-    console.log('[Server] Initializing...');
+    logger.info('[Server] Initializing...');
     
     // 1. Wait for AWS Secrets Manager to resolve critical keys
     await loadSecrets();
     
     // 2. Start Express
     app.listen(config.port, () => {
-      console.log(`[Server] Listening on port ${config.port}`);
+      logger.info(`[Server] Listening on port ${config.port}`);
     });
   } catch (error) {
-    console.error('[Server] Fatal Error during startup:', error);
+    logger.error(error, '[Server] Fatal Error during startup:');
     process.exit(1);
   }
 }
