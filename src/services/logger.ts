@@ -1,10 +1,12 @@
 import pino from 'pino';
-import { config } from '../config/env';
 
-const isProduction = config.nodeEnv === 'production';
+// Note: logger intentionally reads process.env directly.
+// Importing from config/env would create a circular dependency:
+// env.ts → secrets.ts → logger.ts → env.ts
+const isProduction = process.env.NODE_ENV === 'production';
 
 export const logger = pino({
-  level: config.logLevel,
+  level: process.env.LOG_LEVEL || 'info',
   // In development, use pino-pretty for readable logs.
   // In production, log raw JSON for DataDog/CloudWatch.
   ...(isProduction ? {} : {
