@@ -6,7 +6,8 @@ x-app-env: &app-env
   AWS_REGION: us-east-1
   AWS_ACCESS_KEY_ID: test
   AWS_SECRET_ACCESS_KEY: test
-  SQS_QUEUE_URL: http://localstack:4566/000000000000/media-sync-queue
+  SQS_FETCH_MEDIA_QUEUE_URL: http://localstack:4566/000000000000/media-sync-queue
+  SQS_DOWNLOAD_MEDIA_QUEUE_URL: http://localstack:4566/000000000000/asset-download-queue
   S3_BUCKET_NAME: hashtag-media-assets
   # Add dummy values so the startup validation passes (or add real ones to a local .env file)
   META_ACCESS_TOKEN: ${META_ACCESS_TOKEN:-mock_token}
@@ -51,9 +52,21 @@ services:
       - .:/app
       - /app/node_modules
 
-  worker:
+  fetch_media_worker:
     build: .
-    command: npm run dev:worker
+    command: npm run dev:worker:fetchMedia
+    environment:
+      <<: *app-env
+    depends_on:
+      - postgres
+      - localstack
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+  download_media_worker:
+    build: .
+    command: npm run dev:worker:downloadMedia
     environment:
       <<: *app-env
     depends_on:

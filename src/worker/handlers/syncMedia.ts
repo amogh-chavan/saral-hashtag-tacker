@@ -31,7 +31,7 @@ export async function handleSyncMedia(payload: SyncMediaPayload) {
           media_type: item.media_type,
           caption: item.caption || null,
           permalink: item.permalink,
-          posted_at: new Date() // Since Meta doesn't reliably return this, we default it
+          posted_at: item.timestamp ? new Date(item.timestamp) : new Date()
         })
         .onConflict('ig_media_id')
         .merge()

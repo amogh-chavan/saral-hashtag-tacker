@@ -12,7 +12,8 @@ export const sqsClient = new SQSClient({
   },
 });
 
-export const QUEUE_URL = config.sqs.queueUrl;
+export const FETCH_MEDIA_QUEUE_URL = config.sqs.fetchMediaQueueUrl;
+export const DOWNLOAD_MEDIA_QUEUE_URL = config.sqs.downloadMediaQueueUrl;
 
 export enum JobType {
   SYNC_TOP_HASHTAG_MEDIA = 'SYNC_TOP_HASHTAG_MEDIA',
@@ -36,22 +37,22 @@ export interface DownloadAssetPayload {
 
 export class QueueService {
   async enqueueSyncMedia(payload: SyncMediaPayload) {
-    await this.sendMessage({
+    await this.sendMessage(FETCH_MEDIA_QUEUE_URL, {
       type: payload.syncType,
       payload,
     });
   }
 
   async enqueueDownloadAsset(payload: DownloadAssetPayload) {
-    await this.sendMessage({
+    await this.sendMessage(DOWNLOAD_MEDIA_QUEUE_URL, {
       type: JobType.DOWNLOAD_ASSET,
       payload,
     });
   }
 
-  private async sendMessage(body: { type: JobType; payload: any }) {
+  private async sendMessage(queueUrl: string, body: { type: JobType; payload: any }) {
     const command = new SendMessageCommand({
-      QueueUrl: QUEUE_URL,
+      QueueUrl: queueUrl,
       MessageBody: JSON.stringify(body),
     });
 
