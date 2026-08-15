@@ -1,7 +1,7 @@
 import { logger } from './logger';
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 import { config } from '../config/env';
-import { FeedType } from '../types';
+
 
 export const sqsClient = new SQSClient({
   endpoint: config.aws.endpoint,

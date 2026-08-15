@@ -12,6 +12,10 @@ const config: { [key: string]: Knex.Config } = {
     migrations: {
       directory: path.resolve(__dirname, "migrations"),
       extension: "ts"
+    },
+    seeds: {
+      directory: path.resolve(__dirname, "seeds"),
+      extension: "ts"
     }
   }
 };

@@ -23,9 +23,6 @@ export async function handleSyncMedia(payload: SyncMediaPayload) {
 
   await db.transaction(async (trx) => {
     for (const item of mediaList) {
-      // 1. Extract shortcode from permalink (e.g. https://www.instagram.com/p/CXYZ123/)
-      const shortcodeMatch = item.permalink.match(/\/p\/([^\/]+)\//);
-      const shortcode = shortcodeMatch ? shortcodeMatch[1] : null;
 
       // 2. UPSERT Media (Cold Data)
       const mediaInsertResult = await trx('media')
@@ -34,7 +31,6 @@ export async function handleSyncMedia(payload: SyncMediaPayload) {
           media_type: item.media_type,
           caption: item.caption || null,
           permalink: item.permalink,
-          shortcode,
           posted_at: new Date() // Since Meta doesn't reliably return this, we default it
         })
         .onConflict('ig_media_id')
