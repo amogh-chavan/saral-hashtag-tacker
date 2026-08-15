@@ -13,6 +13,8 @@ export const config = {
     accessToken: process.env.META_ACCESS_TOKEN as string,
     userId: process.env.META_USER_ID as string,
     mediaFetchLimit: parseInt(process.env.META_MEDIA_FETCH_LIMIT as string, 10),
+    // Max items per single Meta API page call. API fails for higher limits.
+    apiPageLimit: parseInt(process.env.META_API_PAGE_LIMIT as string, 10),
   },
   aws: {
     endpoint: process.env.AWS_ENDPOINT as string,

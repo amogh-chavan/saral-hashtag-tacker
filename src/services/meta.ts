@@ -72,7 +72,7 @@ export class MetaService {
     const params: Record<string, any> = {
       user_id: this.userId,
       fields: 'id,media_type,caption,permalink,media_url,timestamp,like_count,comments_count',
-      limit: 5, // API fails for a higher limit there fore setting it to a lower limit
+      limit: config.meta.apiPageLimit,
       access_token: this.accessToken,
     };
 
