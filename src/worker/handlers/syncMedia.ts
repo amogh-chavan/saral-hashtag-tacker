@@ -23,6 +23,10 @@ export async function handleSyncMedia(payload: SyncMediaPayload) {
 
   await db.transaction(async (trx) => {
     for (const item of mediaList) {
+      if (!item.media_url) {
+        logger.info(`[SYNC] Skipping media ${item.id} because it lacks a media_url download link.`);
+        continue;
+      }
 
       // 2. UPSERT Media (Cold Data)
       const mediaInsertResult = await trx('media')
@@ -78,10 +82,13 @@ export async function handleSyncMedia(payload: SyncMediaPayload) {
       const currentMedia = await trx('media').where({ id: internalMediaId }).first();
       if (!currentMedia.asset_key && item.media_url) {
         const ext = item.media_type === 'VIDEO' ? '.mp4' : '.jpg';
-        await queueService.enqueueDownloadAsset({
-          internalMediaId: internalMediaId,
-          metaMediaUrl: item.media_url,
-          fileExtension: ext
+        await trx('outbox_events').insert({
+          event_type: JobType.DOWNLOAD_ASSET,
+          payload: JSON.stringify({
+            internalMediaId: internalMediaId,
+            metaMediaUrl: item.media_url,
+            fileExtension: ext
+          })
         });
       }
     }

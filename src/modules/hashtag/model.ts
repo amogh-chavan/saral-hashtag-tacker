@@ -10,6 +10,7 @@ export class HashtagModel {
       .join('media_hashtags', 'media.id', 'media_hashtags.media_id')
       .join('media_metrics', 'media.id', 'media_metrics.media_id')
       .where('media_hashtags.hashtag_id', hashtagId)
+      .whereNotNull('media.asset_key')
       .select(
         'media.id',
         'media.ig_media_id',
@@ -29,8 +30,10 @@ export class HashtagModel {
   }
 
   async getMediaCountByHashtagId(hashtagId: string): Promise<number> {
-    const [{ count }] = await db('media_hashtags')
-      .where('hashtag_id', hashtagId)
+    const [{ count }] = await db('media')
+      .join('media_hashtags', 'media.id', 'media_hashtags.media_id')
+      .where('media_hashtags.hashtag_id', hashtagId)
+      .whereNotNull('media.asset_key')
       .count();
     return parseInt(count as string, 10);
   }
