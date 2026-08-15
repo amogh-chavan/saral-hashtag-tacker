@@ -4,24 +4,9 @@ import { metaService } from '../../services/meta';
 import { queueService, SyncMediaPayload, JobType } from '../../services/queue';
 import { FeedType } from '../../types';
 
-export async function handleSyncMedia(payload: SyncMediaPayload) {
-  const { hashtagId, igHashtagId, syncType, afterCursor } = payload;
-  const totalFetched = payload.totalFetched || 0;
-  const FETCH_LIMIT = 500;
-
-  const feedType = syncType === JobType.SYNC_TOP_HASHTAG_MEDIA ? FeedType.TOP : FeedType.RECENT;
-
-  logger.info(`[SYNC] Fetching ${feedType} for hashtag DB_ID: ${hashtagId} (after: ${afterCursor || 'none'})`);
-
-  const response = await metaService.getHashtagMedia(igHashtagId, feedType, afterCursor);
-  const mediaList = response.data;
-
-  if (mediaList.length === 0) {
-    logger.info(`[SYNC] No more media found for ${hashtagId}`);
-    return;
-  }
-
-  await db.transaction(async (trx) => {
+async function processAndInsertMedia(mediaList: any[], hashtagId: string, syncType: JobType) {
+  const trx = await db.transaction();
+  try {
     for (const item of mediaList) {
       if (!item.media_url) {
         logger.info(`[SYNC] Skipping media ${item.id} because it lacks a media_url download link.`);
@@ -92,7 +77,34 @@ export async function handleSyncMedia(payload: SyncMediaPayload) {
         });
       }
     }
-  });
+    
+    await trx.commit();
+    logger.info(`[SYNC] Successfully committed transaction for hashtag DB_ID: ${hashtagId}`);
+  } catch (error) {
+    await trx.rollback();
+    logger.error({ err: error }, `[SYNC] Failed to process media items for hashtag DB_ID: ${hashtagId}. Rolling back.`);
+    throw error;
+  }
+}
+
+export async function handleSyncMedia(payload: SyncMediaPayload) {
+  const { hashtagId, igHashtagId, syncType, afterCursor } = payload;
+  const totalFetched = payload.totalFetched || 0;
+  const FETCH_LIMIT = 500;
+
+  const feedType = syncType === JobType.SYNC_TOP_HASHTAG_MEDIA ? FeedType.TOP : FeedType.RECENT;
+
+  logger.info(`[SYNC] Fetching ${feedType} for hashtag DB_ID: ${hashtagId} (after: ${afterCursor || 'none'})`);
+
+  const response = await metaService.getHashtagMedia(igHashtagId, feedType, afterCursor);
+  const mediaList = response.data;
+
+  if (mediaList.length === 0) {
+    logger.info(`[SYNC] No more media found for ${hashtagId}`);
+    return;
+  }
+
+  await processAndInsertMedia(mediaList, hashtagId, syncType);
 
   // 6. Handle Pagination
   const nextCursor = response.paging?.cursors?.after;

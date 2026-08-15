@@ -1,6 +1,6 @@
 import { logger } from '../services/logger';
 import { DOWNLOAD_MEDIA_QUEUE_URL, JobType } from '../services/queue';
-import { handleDownloadAsset } from './handlers/downloadAsset';
+import { handleDownloadAsset } from './handlers/downloadMedia';
 import { loadSecrets } from '../config/env';
 import { pollQueue } from './poll';
 

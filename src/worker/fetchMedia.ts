@@ -1,6 +1,6 @@
 import { logger } from '../services/logger';
 import { FETCH_MEDIA_QUEUE_URL, JobType } from '../services/queue';
-import { handleSyncMedia } from './handlers/syncMedia';
+import { handleSyncMedia } from './handlers/fetchMedia';
 import { loadSecrets } from '../config/env';
 import { pollQueue } from './poll';
 

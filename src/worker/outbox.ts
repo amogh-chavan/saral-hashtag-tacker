@@ -39,9 +39,16 @@ async function pollOutbox() {
     const oneDayAgo = new Date();
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
     
+    // Delete in batches to prevent locking the table if there are too many events
     await db('outbox_events')
-      .where('status', 'PROCESSED')
-      .andWhere('processed_at', '<', oneDayAgo)
+      .whereIn(
+        'id',
+        db('outbox_events')
+          .select('id')
+          .where('status', 'PROCESSED')
+          .andWhere('processed_at', '<', oneDayAgo)
+          .limit(500)
+      )
       .delete();
 
   } catch (error: any) {
