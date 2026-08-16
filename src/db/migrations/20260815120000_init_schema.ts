@@ -14,8 +14,8 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable("media", (table) => {
     table.uuid("id").primary().defaultTo(knex.raw("gen_random_uuid()"));
     table.string("ig_media_id").notNullable().unique();
-    table.enum("media_type", ["IMAGE", "VIDEO", "CAROUSEL_ALBUM"]).notNullable();
-    table.text("caption");
+    table.enum("media_type", ["IMAGE", "VIDEO", "CAROUSEL_ALBUM"], { useNative: true, enumName: "media_type_enum" }).notNullable();
+    table.string("caption", 10000);
     table.string("permalink").notNullable();
     table.string("asset_key", 2048);
     table.timestamp("posted_at").notNullable();
