@@ -24,7 +24,7 @@ The three background workers are responsible for the following:
 Instead of a single monolithic process, the application is broken down into 5 independent containers:
 1. **API Server (`server`)**: The Express REST API for querying tracked hashtags and retrieving paginated media.
 2. **Cron Scheduler (`cron`)**: Acts as an alarm clock, periodically triggering sync jobs for active hashtags.
-3. **Fetch Worker (`fetch_media_worker`)**: Polls the SQS `fetch-media-queue`. Calls the Meta API to sync post metadata (likes, comments, captions) and safely `UPSERT`s it into PostgreSQL. If it finds a new post, it drops a job in the database outbox.
+3. **Fetch Worker (`fetch_media_worker`)**: Polls the SQS `fetch-media-queue`. Calls the Meta API to sync post metadata (likes, comments, captions) and safely `UPSERT`s it into PostgreSQL. If it finds a new post, it drops a job in the database outbox. This worker is completely stateless (pagination state is passed via SQS payload) and can be scaled horizontally.
 4. **Outbox Worker (`outbox_worker`)**: Polls the PostgreSQL `outbox_events` table for `PENDING` download jobs and pushes them to the SQS download queue.
 5. **Download Worker (`download_media_worker`)**: Polls the SQS `download-media-queue`. Downloads the raw `.mp4` or `.jpg` assets from Meta and uploads them directly to S3 (LocalStack), avoiding blocking the main sync flow. Download workers can be scaled horizontally.
 
@@ -67,7 +67,7 @@ The database is highly normalized to separate "hot" (frequently updating) data f
 
 ## Tuning & Configuration
 
-Because the application is highly decoupled, it is designed to be easily tunable without changing code. In particular, the **Download Workers**—which handle the most time-consuming task of streaming media to S3—can be scaled horizontally to dramatically increase throughput.
+Because the application is highly decoupled, it is designed to be easily tunable without changing code. Due to the stateless design where pagination and limits are passed via SQS payloads, **both the Fetch Workers and Download Workers can be scaled horizontally** to dramatically increase throughput and process multiple hashtags concurrently.
 
 Every key component is strictly configured via the `.env` file. Below is a detailed explanation of the essential environment variables:
 
