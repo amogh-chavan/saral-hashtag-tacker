@@ -6,13 +6,19 @@ A highly scalable, background-worker driven backend application to track, fetch,
 
 This project is built using a **Background Worker Architecture** and the **Outbox Pattern** to ensure high throughput, reliability, and strict idempotency.
 
+<!-- Note: Export your .drawio file as an SVG or PNG and save it as architecture.svg in the docs/images folder -->
+<div align="center">
+  <img src="./docs/images/architecture.svg" alt="Saral Hashtag Tracker Architecture" />
+</div>
+
+
 ### The Services
 Instead of a single monolithic process, the application is broken down into 5 independent containers:
 1. **API Server (`server`)**: The Express REST API for querying tracked hashtags and retrieving paginated media.
 2. **Cron Scheduler (`cron`)**: Acts as an alarm clock, periodically triggering sync jobs for active hashtags.
 3. **Fetch Worker (`fetch_media_worker`)**: Polls the SQS `fetch-media-queue`. Calls the Meta API to sync post metadata (likes, comments, captions) and safely `UPSERT`s it into PostgreSQL. If it finds a new post, it drops a job in the database outbox.
 4. **Outbox Worker (`outbox_worker`)**: Polls the PostgreSQL `outbox_events` table for `PENDING` download jobs and pushes them to the SQS download queue.
-5. **Download Worker (`download_media_worker`)**: Polls the SQS `download-media-queue`. Downloads the raw `.mp4` or `.jpg` assets from Meta and uploads them directly to S3 (LocalStack), avoiding blocking the main sync flow.
+5. **Download Worker (`download_media_worker`)**: Polls the SQS `download-media-queue`. Downloads the raw `.mp4` or `.jpg` assets from Meta and uploads them directly to S3 (LocalStack), avoiding blocking the main sync flow. Download workers can be scaled horizontally.
 
 ### Project Structure
 - `src/modules/`: Contains the Express API controllers, models, and validators.
@@ -42,7 +48,7 @@ Instead of a single monolithic process, the application is broken down into 5 in
    ```
 
 3. **Accessing the App:**
-   - The API is available at: `http://localhost:3000`
+   - The Webserver is available at: `http://localhost:3000`
    - Postgres is exposed on: `localhost:15432`
    - LocalStack (S3/SQS/Secrets Manager) is exposed on: `localhost:4566`
 
